@@ -181,10 +181,10 @@ class Diffusion(object):
                     if self.config.model.ema:
                         states.append(ema_helper.state_dict())
 
-                    torch.save(
-                        states,
-                        os.path.join(self.args.log_path, "ckpt_{}.pth".format(step)),
-                    )
+                    #torch.save(
+                    #    states,
+                    #    os.path.join(self.args.log_path, "ckpt_{}.pth".format(step)),
+                    #)
                     torch.save(states, os.path.join(self.args.log_path, "ckpt.pth"))
 
                 data_start = time.time()
