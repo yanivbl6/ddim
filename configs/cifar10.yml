@@ -23,6 +23,7 @@ model:
     ema: True
     resamp_with_conv: True
     generalize: True
+    embedding: False
 
 diffusion:
     beta_schedule: linear
