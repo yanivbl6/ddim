@@ -359,7 +359,7 @@ class Model(nn.Module):
         if self.generalize:
             ##import pdb; pdb.set_trace()
             out = (x/torch.sqrt(alpha_t) - out)
-            out = out * ((1-alpha_t) / torch.sqrt(alpha_t))
+            out = out * torch.sqrt(((1-alpha_t) / alpha_t))
         return out
 
 
