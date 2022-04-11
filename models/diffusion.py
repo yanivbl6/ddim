@@ -309,12 +309,12 @@ class Model(nn.Module):
         assert x.shape[2] == x.shape[3] == self.resolution
 
         if self.generalize:
-            import pdb; pdb.set_trace()
 
-            assert b
-            x = x / x.norm(dim = [1,2,3], keepdim=  True) ##normalize x (per sample)
-            alpha_t = compute_alpha(b, t.long()).unsqueeze([1,2,3]) ## get alpha_t
-            temb = torch.zeros([x.shape[0] , self.temb_ch]) ## don't use embedding
+            ##import pdb; pdb.set_trace()
+            assert (not b is None)
+            x = x / torch.sqrt(x.sum(dim = [1,2,3], keepdim=  True)**2) ##normalize x (per sample)
+            alpha_t = compute_alpha(b, t.long()) ## get alpha_t
+            temb = torch.zeros([x.shape[0] , self.temb_ch], device = x.device) ## don't use embedding
             x = x * (torch.sqrt(alpha_t) / (1-alpha_t))
 
         else:
@@ -357,7 +357,7 @@ class Model(nn.Module):
         out = self.conv_out(h)
 
         if self.generalize:
-            import pdb; pdb.set_trace()
+            ##import pdb; pdb.set_trace()
             out = (x/torch.sqrt(alpha_t) - out)
             out = out * ((1-alpha_t) / torch.sqrt(alpha_t))
         return out
