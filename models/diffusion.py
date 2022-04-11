@@ -193,6 +193,12 @@ class AttnBlock(nn.Module):
         return x+h_
 
 
+
+def norm_act(x, epsilon = 1e-5):
+    xnorm2 = (x.sum(dim = [1,2,3], keepdim=  True)**2)
+    factor =  1.0-torch.nn.functional.relu(1.0-1.0/xnorm2)
+    return factor*x
+
 class Model(nn.Module):
     def __init__(self, config):
         super().__init__()
@@ -358,6 +364,7 @@ class Model(nn.Module):
 
         if self.generalize:
             ##import pdb; pdb.set_trace()
+            out = norm_act(out)
             out = (x/torch.sqrt(alpha_t) - out)
             out = out * torch.sqrt(((1-alpha_t) / alpha_t))
         return out
