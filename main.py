@@ -79,6 +79,10 @@ def parse_args_and_config():
     parser.add_argument(
         "--timesteps", type=int, default=1000, help="number of steps involved"
     )
+
+
+
+
     parser.add_argument(
         "--eta",
         type=float,
@@ -86,6 +90,9 @@ def parse_args_and_config():
         help="eta used to control the variances of sigma",
     )
     parser.add_argument("--sequence", action="store_true")
+
+
+
 
     args = parser.parse_args()
     args.log_path = os.path.join(args.exp, "logs", args.doc)

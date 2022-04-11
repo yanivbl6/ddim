@@ -2,6 +2,10 @@ import math
 import torch
 import torch.nn as nn
 
+def compute_alpha(beta, t):
+    beta = torch.cat([torch.zeros(1).to(beta.device), beta], dim=0)
+    a = (1 - beta).cumprod(dim=0).index_select(0, t + 1).view(-1, 1, 1, 1)
+    return a
 
 def get_timestep_embedding(timesteps, embedding_dim):
     """
@@ -201,10 +205,13 @@ class Model(nn.Module):
         resolution = config.data.image_size
         resamp_with_conv = config.model.resamp_with_conv
         num_timesteps = config.diffusion.num_diffusion_timesteps
-        
+        generalize = self.generalize = config.model.generalize
+
         if config.model.type == 'bayesian':
             self.logvar = nn.Parameter(torch.zeros(num_timesteps))
         
+
+
         self.ch = ch
         self.temb_ch = self.ch*4
         self.num_resolutions = len(ch_mult)
@@ -298,15 +305,25 @@ class Model(nn.Module):
                                         stride=1,
                                         padding=1)
 
-    def forward(self, x, t):
+    def forward(self, x, t, b = None):
         assert x.shape[2] == x.shape[3] == self.resolution
 
-        # timestep embedding
-        temb = get_timestep_embedding(t, self.ch)
-        temb = self.temb.dense[0](temb)
-        temb = nonlinearity(temb)
-        temb = self.temb.dense[1](temb)
+        if self.generalize:
+            import pdb; pdb.set_trace()
 
+            assert b
+            x = x / x.norm(dim = [1,2,3], keepdim=  True) ##normalize x (per sample)
+            alpha_t = compute_alpha(b, t.long()).unsqueeze([1,2,3]) ## get alpha_t
+            temb = torch.zeros([x.shape[0] , self.temb_ch]) ## don't use embedding
+            x = x * (torch.sqrt(alpha_t) / (1-alpha_t))
+
+        else:
+            # timestep embedding
+            temb = get_timestep_embedding(t, self.ch)
+            temb = self.temb.dense[0](temb)
+            temb = nonlinearity(temb)
+            temb = self.temb.dense[1](temb)
+        
         # downsampling
         hs = [self.conv_in(x)]
         for i_level in range(self.num_resolutions):
@@ -337,5 +354,12 @@ class Model(nn.Module):
         # end
         h = self.norm_out(h)
         h = nonlinearity(h)
-        h = self.conv_out(h)
-        return h
+        out = self.conv_out(h)
+
+        if self.generalize:
+            import pdb; pdb.set_trace()
+            out = (x/torch.sqrt(alpha_t) - out)
+            out = out * ((1-alpha_t) / torch.sqrt(alpha_t))
+        return out
+
+
