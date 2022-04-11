@@ -212,6 +212,7 @@ class Model(nn.Module):
         resamp_with_conv = config.model.resamp_with_conv
         num_timesteps = config.diffusion.num_diffusion_timesteps
         generalize = self.generalize = config.model.generalize
+        self.use_embedding = config.model.embedding
 
         if config.model.type == 'bayesian':
             self.logvar = nn.Parameter(torch.zeros(num_timesteps))
@@ -318,9 +319,18 @@ class Model(nn.Module):
 
             ##import pdb; pdb.set_trace()
             assert (not b is None)
-            x = x / torch.sqrt(x.sum(dim = [1,2,3], keepdim=  True)**2) ##normalize x (per sample)
+            
             alpha_t = compute_alpha(b, t.long()) ## get alpha_t
-            temb = torch.zeros([x.shape[0] , self.temb_ch], device = x.device) ## don't use embedding
+
+            if self.use_embedding:
+                temb = get_timestep_embedding(t, self.ch)
+                temb = self.temb.dense[0](temb)
+                temb = nonlinearity(temb)
+                temb = self.temb.dense[1](temb)
+            else:
+                temb = torch.zeros([x.shape[0] , self.temb_ch], device = x.device) ## don't use embedding
+
+            x_in  = x
             x = x * (torch.sqrt(alpha_t) / (1-alpha_t))
 
         else:
@@ -365,8 +375,8 @@ class Model(nn.Module):
         if self.generalize:
             ##import pdb; pdb.set_trace()
             out = norm_act(out)
-            out = (x/torch.sqrt(alpha_t) - out)
-            out = out * torch.sqrt(((1-alpha_t) / alpha_t))
+            out = (x_in/torch.sqrt(alpha_t) - out)
+            out = out * torch.sqrt( alpha_t / (1-alpha_t) )
         return out
 
 
