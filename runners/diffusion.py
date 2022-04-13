@@ -25,7 +25,7 @@ def torch2hwcuint8(x, clip=False):
     return x
 
 
-def get_beta_schedule(beta_schedule, *, beta_start, beta_end, num_diffusion_timesteps):
+def get_beta_schedule(beta_schedule, *, beta_start, beta_end, beta_scale, num_diffusion_timesteps):
     def sigmoid(x):
         return 1 / (np.exp(-x) + 1)
 
@@ -55,7 +55,7 @@ def get_beta_schedule(beta_schedule, *, beta_start, beta_end, num_diffusion_time
     else:
         raise NotImplementedError(beta_schedule)
     assert betas.shape == (num_diffusion_timesteps,)
-    return betas
+    return betas * beta_scale
 
 
 class Diffusion(object):
@@ -75,6 +75,7 @@ class Diffusion(object):
             beta_schedule=config.diffusion.beta_schedule,
             beta_start=config.diffusion.beta_start,
             beta_end=config.diffusion.beta_end,
+            beta_scale = config.diffusion.beta_scale,
             num_diffusion_timesteps=config.diffusion.num_diffusion_timesteps,
         )
         betas = self.betas = torch.from_numpy(betas).float().to(self.device)
@@ -143,14 +144,21 @@ class Diffusion(object):
                 x = data_transform(self.config, x)
                 if self.config.model.generalize:
                     x = x / torch.sqrt(x.sum(dim = [1,2,3], keepdim=  True)**2) ##normalize x (per sample)
-                e = torch.randn_like(x)
+                    e = torch.randn_like(x) / torch.sqrt(x.sum(dim = [1,2,3], keepdim=  True)**2)
+                else:
+                    e = torch.randn_like(x)
                 b = self.betas
 
                 # antithetic sampling
+
+                ts_l = 0 + self.config.diffusion.trim_timesteps
+                ts_h = self.num_timesteps - self.config.diffusion.trim_timesteps
+
+
                 t = torch.randint(
-                    low=0, high=self.num_timesteps, size=(n // 2 + 1,)
+                    low=ts_l, high=ts_h, size=(n // 2 + 1,)
                 ).to(self.device)
-                t = torch.cat([t, self.num_timesteps - t - 1], dim=0)[:n]
+                t = torch.cat([t, ts_h - t - 1], dim=0)[:n]
                 loss = loss_registry[config.model.type](model, x, t, e, b)
 
                 tb_logger.add_scalar("loss", loss, global_step=step)
