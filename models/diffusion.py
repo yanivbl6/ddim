@@ -195,7 +195,7 @@ class AttnBlock(nn.Module):
 
 
 def norm_act(x, epsilon = 1e-5):
-    xnorm2 = (x.sum(dim = [1,2,3], keepdim=  True)**2)
+    xnorm2 = torch.sqrt(x.sum(dim = [1,2,3], keepdim=  True)**2)
     factor =  1.0-torch.nn.functional.relu(1.0-1.0/xnorm2)
     return factor*x
 
@@ -212,7 +212,10 @@ class Model(nn.Module):
         resamp_with_conv = config.model.resamp_with_conv
         num_timesteps = config.diffusion.num_diffusion_timesteps
         generalize = self.generalize = config.model.generalize
+        self.use_normAct = config.model.normAct
         self.use_embedding = config.model.embedding
+        self.use_factors = config.model.use_factors
+        self.use_residual = config.model.use_residual
 
         if config.model.type == 'bayesian':
             self.logvar = nn.Parameter(torch.zeros(num_timesteps))
@@ -320,7 +323,6 @@ class Model(nn.Module):
             ##import pdb; pdb.set_trace()
             assert (not b is None)
             
-            alpha_t = compute_alpha(b, t.long()) ## get alpha_t
 
             if self.use_embedding:
                 temb = get_timestep_embedding(t, self.ch)
@@ -330,8 +332,12 @@ class Model(nn.Module):
             else:
                 temb = torch.zeros([x.shape[0] , self.temb_ch], device = x.device) ## don't use embedding
 
+
             x_in  = x
-            x = x * (torch.sqrt(alpha_t) / (1-alpha_t))
+            
+            if self.use_factors:
+                alpha_t = compute_alpha(b, t.long()) ## get alpha_t
+                x = x * (torch.sqrt(alpha_t) / (1-alpha_t))
 
         else:
             # timestep embedding
@@ -374,9 +380,14 @@ class Model(nn.Module):
 
         if self.generalize:
             ##import pdb; pdb.set_trace()
-            out = norm_act(out)
-            out = (x_in/torch.sqrt(alpha_t) - out)
-            out = out * torch.sqrt( alpha_t / (1-alpha_t) )
+            if self.use_normAct:
+                out = norm_act(out)
+
+            if self.use_residual:
+                out = (x_in/torch.sqrt(alpha_t) - out)
+
+            if self.use_factors:
+                out = out * torch.sqrt( alpha_t / (1-alpha_t) )
         return out
 
 

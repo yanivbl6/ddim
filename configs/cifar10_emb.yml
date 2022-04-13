@@ -23,15 +23,16 @@ model:
     ema: True
     resamp_with_conv: True
     generalize: True
-    embedding: False
+    embedding: True
+    normAct: True
 
 diffusion:
     beta_schedule: linear
     beta_start: 0.0001
     beta_end: 0.02
-    beta_scale: 0.0125
     num_diffusion_timesteps: 1000
     trim_timesteps: 5
+    beta_scale: 0.0125
 
 training:
     batch_size: 128
@@ -39,7 +40,7 @@ training:
     n_iters: 5000000
     snapshot_freq: 10000
     validation_freq: 2000
-
+    
 sampling:
     batch_size: 64
     last_only: True
