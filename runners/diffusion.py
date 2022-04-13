@@ -144,9 +144,8 @@ class Diffusion(object):
                 x = data_transform(self.config, x)
                 if self.config.model.generalize:
                     x = x / torch.sqrt(x.sum(dim = [1,2,3], keepdim=  True)**2) ##normalize x (per sample)
-                    e = torch.randn_like(x) / torch.sqrt(x.sum(dim = [1,2,3], keepdim=  True)**2)
-                else:
-                    e = torch.randn_like(x)
+
+                e = torch.randn_like(x)
                 b = self.betas
 
                 # antithetic sampling
