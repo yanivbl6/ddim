@@ -335,8 +335,8 @@ class Model(nn.Module):
 
             x_in  = x
             
+            alpha_t = compute_alpha(b, t.long()) ## get alpha_t
             if self.use_factors:
-                alpha_t = compute_alpha(b, t.long()) ## get alpha_t
                 x = x * (torch.sqrt(alpha_t) / (1-alpha_t))
 
         else:
