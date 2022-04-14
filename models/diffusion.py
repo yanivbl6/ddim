@@ -195,7 +195,7 @@ class AttnBlock(nn.Module):
 
 
 def norm_act(x, epsilon = 1e-5):
-    xnorm2 = torch.sqrt(x.detach().sum(dim = [1,2,3], keepdim=  True)**2)
+    xnorm2 = torch.sqrt(x.detach().sum(dim = [1,2,3], keepdim=  True)**2) + epsilon
     factor =  1.0-torch.nn.functional.relu(1.0-1.0/xnorm2)
     return factor*x
 
