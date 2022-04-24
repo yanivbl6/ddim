@@ -80,7 +80,7 @@ class Diffusion(object):
         )
         betas = self.betas = torch.from_numpy(betas).float().to(self.device)
         self.num_timesteps = betas.shape[0]
-
+        self.trimmer_multiplyer = args.trimmer_multiplyer
         alphas = 1.0 - betas
         alphas_cumprod = alphas.cumprod(dim=0)
         alphas_cumprod_prev = torch.cat(
@@ -150,7 +150,7 @@ class Diffusion(object):
 
                 # antithetic sampling
 
-                ts_l = 0 + self.config.diffusion.trim_timesteps
+                ts_l = 0 + self.config.diffusion.trim_timesteps*self.trimmer_multiplyer
                 ts_h = self.num_timesteps - self.config.diffusion.trim_timesteps
 
 

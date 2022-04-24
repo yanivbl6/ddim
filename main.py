@@ -80,8 +80,9 @@ def parse_args_and_config():
         "--timesteps", type=int, default=1000, help="number of steps involved"
     )
 
-
-
+    parser.add_argument(
+        "--trimmer-multiplyer", type=int, default=1, help="factor to multiply in the trim"
+    )
 
     parser.add_argument(
         "--eta",
