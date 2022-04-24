@@ -151,7 +151,7 @@ class Diffusion(object):
                 # antithetic sampling
 
                 ts_l = 0 + self.config.diffusion.trim_timesteps*self.trimmer_multiplyer
-                ts_h = self.num_timesteps - self.config.diffusion.trim_timesteps
+                ts_h = self.num_timesteps - self.config.diffusion.trim_timesteps*self.trimmer_multiplyer
 
 
                 t = torch.randint(
