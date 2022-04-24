@@ -157,7 +157,7 @@ class Diffusion(object):
                 t = torch.randint(
                     low=ts_l, high=ts_h, size=(n // 2 + 1,)
                 ).to(self.device)
-                t = torch.cat([t, ts_h - t - 1], dim=0)[:n]
+                t = torch.cat([t, self.num_timesteps - t - 1], dim=0)[:n]
                 loss = loss_registry[config.model.type](model, x, t, e, b)
 
                 tb_logger.add_scalar("loss", loss, global_step=step)
