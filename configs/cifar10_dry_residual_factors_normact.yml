@@ -34,7 +34,7 @@ diffusion:
     beta_end: 0.02
     beta_scale: 0.0125
     num_diffusion_timesteps: 1000
-    trim_timesteps: 5
+    trim_timesteps: 50
 
 training:
     batch_size: 128
