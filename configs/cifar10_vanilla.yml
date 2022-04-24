@@ -24,6 +24,7 @@ model:
     resamp_with_conv: True
     generalize: False
     embedding: True
+    normAct: False
     use_factors: False
     use_residual: False
     

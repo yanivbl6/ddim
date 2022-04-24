@@ -24,7 +24,10 @@ model:
     resamp_with_conv: True
     generalize: True
     embedding: False
-
+    normAct: True
+    use_factors: True
+    use_residual: True
+    
 diffusion:
     beta_schedule: linear
     beta_start: 0.0001
