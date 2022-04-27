@@ -333,7 +333,7 @@ class Model(nn.Module):
                 temb = torch.zeros([x.shape[0] , self.temb_ch], device = x.device) ## don't use embedding
 
 
-            x_in  = x
+            x_in  = x.clone()
             
             alpha_t = compute_alpha(b, t.long()) ## get alpha_t
             if self.use_factors:
