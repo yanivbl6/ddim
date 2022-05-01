@@ -331,8 +331,7 @@ class Model(nn.Module):
 
             if self.use_embedding:
                 tmp = (1-alpha_t)/torch.sqrt(alpha_t) 
-                scalar = xt_norm / tmp
-
+                scalar = (xt_norm / tmp).squeeze()
 
                 temb = get_timestep_embedding(scalar, self.ch)
                 temb = self.temb.dense[0](temb)
