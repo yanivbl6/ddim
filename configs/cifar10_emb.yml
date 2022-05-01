@@ -25,6 +25,8 @@ model:
     generalize: True
     embedding: True
     normAct: True
+    use_factors: True
+    use_residual: True
 
 diffusion:
     beta_schedule: linear

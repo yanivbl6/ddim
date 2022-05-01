@@ -324,8 +324,17 @@ class Model(nn.Module):
             assert (not b is None)
             
 
+            xt_norm =   torch.sqrt((x**2).sum(dim = [1,2,3], keepdim=  True))
+            x = x / xt_norm
+
+            alpha_t = compute_alpha(b, t.long()) ## get alpha_t
+
             if self.use_embedding:
-                temb = get_timestep_embedding(t, self.ch)
+                tmp = (1-alpha_t)/torch.sqrt(alpha_t) 
+                scalar = xt_norm / tmp
+
+
+                temb = get_timestep_embedding(scalar, self.ch)
                 temb = self.temb.dense[0](temb)
                 temb = nonlinearity(temb)
                 temb = self.temb.dense[1](temb)
@@ -335,9 +344,7 @@ class Model(nn.Module):
 
             x_in  = x.clone()
             
-            alpha_t = compute_alpha(b, t.long()) ## get alpha_t
-            if self.use_factors:
-                x = x * (torch.sqrt(alpha_t) / (1-alpha_t))
+
 
         else:
             # timestep embedding
