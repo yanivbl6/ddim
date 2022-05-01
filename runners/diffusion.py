@@ -143,7 +143,7 @@ class Diffusion(object):
                 x = x.to(self.device)
                 x = data_transform(self.config, x)
                 if self.config.model.generalize:
-                    x = x / torch.sqrt(x.sum(dim = [1,2,3], keepdim=  True)**2) ##normalize x (per sample)
+                    x = x / torch.sqrt((x**2).sum(dim = [1,2,3], keepdim=  True)) ##normalize x (per sample)
 
                 e = torch.randn_like(x)
                 b = self.betas
